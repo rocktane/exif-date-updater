@@ -30,7 +30,11 @@ export default function Command() {
       try {
         const items = await getSelectedFinderItems();
         if (items.length === 0) {
-          await showToast({ style: Toast.Style.Failure, title: "No Finder selection", message: "Select files or folders in Finder first" });
+          await showToast({
+            style: Toast.Style.Failure,
+            title: "No Finder selection",
+            message: "Select files or folders in Finder first",
+          });
           return;
         }
 
@@ -38,7 +42,10 @@ export default function Command() {
         const filePaths = collectFiles(paths);
 
         if (filePaths.length === 0) {
-          await showToast({ style: Toast.Style.Failure, title: "No supported files found" });
+          await showToast({
+            style: Toast.Style.Failure,
+            title: "No supported files found",
+          });
           return;
         }
 
@@ -51,7 +58,10 @@ export default function Command() {
           let status: FileInfo["status"];
           if (!exifResult) {
             status = "skipped_no_exif";
-          } else if (Math.abs(stat.mtimeMs - exifResult.date.getTime()) < DATE_TOLERANCE_SECONDS * 1000) {
+          } else if (
+            Math.abs(stat.mtimeMs - exifResult.date.getTime()) <
+            DATE_TOLERANCE_SECONDS * 1000
+          ) {
             status = "skipped_same";
           } else {
             status = "pending";
@@ -70,7 +80,11 @@ export default function Command() {
         setFiles(results);
         setPhase("ready");
       } catch (error) {
-        await showToast({ style: Toast.Style.Failure, title: "Error", message: String(error) });
+        await showToast({
+          style: Toast.Style.Failure,
+          title: "Error",
+          message: String(error),
+        });
       }
     })();
   }, []);
@@ -79,20 +93,28 @@ export default function Command() {
   const applyDates = useCallback(async () => {
     const pendingFiles = files.filter((f) => f.status === "pending");
     if (pendingFiles.length === 0) {
-      await showToast({ style: Toast.Style.Animated, title: "Nothing to update" });
+      await showToast({
+        style: Toast.Style.Animated,
+        title: "Nothing to update",
+      });
       return;
     }
 
     const confirmed = await confirmAlert({
       title: `Update ${pendingFiles.length} file${pendingFiles.length > 1 ? "s" : ""}?`,
-      message: "File creation and modification dates will be set to their EXIF dates.",
+      message:
+        "File creation and modification dates will be set to their EXIF dates.",
       primaryAction: { title: "Apply", style: Alert.ActionStyle.Default },
     });
 
     if (!confirmed) return;
 
     setPhase("applying");
-    const toast = await showToast({ style: Toast.Style.Animated, title: "Updating dates…", message: `0 / ${pendingFiles.length}` });
+    const toast = await showToast({
+      style: Toast.Style.Animated,
+      title: "Updating dates…",
+      message: `0 / ${pendingFiles.length}`,
+    });
 
     const updated = [...files];
     let doneCount = 0;
@@ -119,26 +141,40 @@ export default function Command() {
     const successCount = updated.filter((f) => f.status === "updated").length;
 
     if (errorCount > 0) {
-      await showToast({ style: Toast.Style.Failure, title: "Done with errors", message: `${successCount} updated, ${errorCount} failed` });
+      await showToast({
+        style: Toast.Style.Failure,
+        title: "Done with errors",
+        message: `${successCount} updated, ${errorCount} failed`,
+      });
     } else {
-      await showToast({ style: Toast.Style.Success, title: "Done!", message: `${successCount} file${successCount > 1 ? "s" : ""} updated` });
+      await showToast({
+        style: Toast.Style.Success,
+        title: "Done!",
+        message: `${successCount} file${successCount > 1 ? "s" : ""} updated`,
+      });
     }
   }, [files]);
 
   const pendingCount = files.filter((f) => f.status === "pending").length;
-  const skippedCount = files.filter((f) => f.status === "skipped_no_exif" || f.status === "skipped_same").length;
+  const skippedCount = files.filter(
+    (f) => f.status === "skipped_no_exif" || f.status === "skipped_same",
+  ).length;
   const updatedCount = files.filter((f) => f.status === "updated").length;
 
-  const navigationTitle = phase === "scanning"
-    ? "Scanning…"
-    : phase === "applying"
-      ? "Applying…"
-      : phase === "done"
-        ? `Done — ${updatedCount} updated`
-        : `${pendingCount} to update${skippedCount > 0 ? ` (${skippedCount} skipped)` : ""}`;
+  const navigationTitle =
+    phase === "scanning"
+      ? "Scanning…"
+      : phase === "applying"
+        ? "Applying…"
+        : phase === "done"
+          ? `Done — ${updatedCount} updated`
+          : `${pendingCount} to update${skippedCount > 0 ? ` (${skippedCount} skipped)` : ""}`;
 
   return (
-    <List isLoading={phase === "scanning" || phase === "applying"} navigationTitle={navigationTitle}>
+    <List
+      isLoading={phase === "scanning" || phase === "applying"}
+      navigationTitle={navigationTitle}
+    >
       {files.map((file) => (
         <List.Item
           key={file.path}
@@ -149,7 +185,11 @@ export default function Command() {
           actions={
             phase === "ready" && pendingCount > 0 ? (
               <ActionPanel>
-                <Action title="Apply All" icon={Icon.CheckCircle} onAction={applyDates} />
+                <Action
+                  title="Apply All"
+                  icon={Icon.CheckCircle}
+                  onAction={applyDates}
+                />
               </ActionPanel>
             ) : undefined
           }
